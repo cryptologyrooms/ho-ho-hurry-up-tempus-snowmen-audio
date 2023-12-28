@@ -1,0 +1,14 @@
+[Unit]
+Description=Witchful Birds Audio
+After=network-online.target
+
+[Service]
+Type=simple
+User=tempus
+WorkingDirectory=/home/tempus/witchful-birds-audio
+ExecStart=/usr/bin/node /home/tempus/witchful-birds-audio/index.mjs
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
