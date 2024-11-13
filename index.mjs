@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
 import dotenv from 'dotenv';
-dotenv.config();
+import { expand } from 'dotenv-expand';
+
+expand(dotenv.config());
 
 import os from 'os';
 import * as Mqtt from 'mqtt';
@@ -40,21 +42,21 @@ const roomScreenName = process.env.ROOM_SCREEN_NAME;
 const defaultVolume = process.env.DEFAULT_VOLUME;
 const storeName = process.env.STORE_NAME;
 
-const pinPlay = process.env.PIN_PLAY
-const pinLoop = process.env.PIN_LOOP
-const pinStop = process.env.PIN_STOP
-const pinEnded = process.env.PIN_ENDED
-const pinTrackBit0 = process.env.PIN_TRACK_BIT_0
-const pinTrackBit1 = process.env.PIN_TRACK_BIT_1
-const pinTrackBit2 = process.env.PIN_TRACK_BIT_2
-const pinTrackBit3 = process.env.PIN_TRACK_BIT_3
+const pinPlay = parseInt(process.env.PIN_PLAY);
+const pinLoop = parseInt(process.env.PIN_LOOP);
+const pinStop = parseInt(process.env.PIN_STOP);
+const pinEnded = parseInt(process.env.PIN_ENDED);
+const pinTrackBit0 = parseInt(process.env.PIN_TRACK_BIT_0);
+const pinTrackBit1 = parseInt(process.env.PIN_TRACK_BIT_1);
+const pinTrackBit2 = parseInt(process.env.PIN_TRACK_BIT_2);
+const pinTrackBit3 = parseInt(process.env.PIN_TRACK_BIT_3);
 
 console.log('Room Slug: ' + roomSlug);
 console.log('Room Screen Name: ' + roomScreenName);
 console.log('Store Name: ' + storeName);
 console.log('Default volume: ' + defaultVolume);
 
-import Gpio from 'onoff';
+import { Gpio } from '@bratbit/onoff';
 
 let endedOut;
 let playIn;
@@ -66,7 +68,7 @@ let trackBit2In;
 let trackBit4In;
 let endedTimeout = null;
 
-if (Gpio.Gpio.accessible) {
+if (true) { //Gpio.Gpio.accessible) {
   console.log('Gpio: using real ended');
   endedOut = new Gpio.Gpio(pinEnded, 'out');
   playIn = new Gpio.Gpio(pinPlay, 'in', 'rising', {debounceTimeout: 10});
@@ -77,8 +79,8 @@ if (Gpio.Gpio.accessible) {
   trackBit2In = new Gpio.Gpio(pinPlay, 'in');
   trackBit4In = new Gpio.Gpio(pinPlay, 'in');
 
-  playIn.watch(playWatch)
-  stopIn.watch(stopWatch)
+  playIn.watch(playWatch);
+  stopIn.watch(stopWatch);
 } else {
   console.log('Gpio: using virtual ended');
   endedOut = {
