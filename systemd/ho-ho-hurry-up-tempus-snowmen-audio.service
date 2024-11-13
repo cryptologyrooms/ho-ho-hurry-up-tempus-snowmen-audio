@@ -1,0 +1,14 @@
+[Unit]
+Description=Hurry Up Snowmen Audio
+After=network-online.target
+
+[Service]
+Type=simple
+User=tempus
+WorkingDirectory=/home/tempus/ho-ho-hurry-up-tempus-snowmen-audio
+ExecStart=/usr/bin/node /home/tempus/ho-ho-hurry-up-tempus-snowmen-audio/index.mjs
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
