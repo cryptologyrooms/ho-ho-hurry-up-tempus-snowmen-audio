@@ -84,10 +84,10 @@ if (Gpio.Gpio.accessible) {
   endedOut = {
     write: value => {
       console.log('Ended: virtual ended now uses value: ' + value);
-    }
+    },
     unexport: () => {
       //
-    }
+    },
   };
 }
 
@@ -121,6 +121,7 @@ let defaultData = {
   playingPath: null,
   playAudio: false,
   playLooped: false,
+  puzzleData: [],
 };
 
 let currentData = JSON.parse(JSON.stringify(defaultData));
@@ -177,6 +178,7 @@ const presencePayload = {
     state: 'WILL',
 };
 const puzzleLogTopic = 'tempus/room/' + roomSlug + '/puzzle/' + roomScreenName + '/log';
+const storeTopicPrefix = 'tempus/puzzle-data/' + storeName + '/';
 
 const mqttOptions = {
     will:{
@@ -261,6 +263,19 @@ const mqttTopics = {
     let payload = data.length ? JSON.parse(data) : null;
     console.log('music', payload);
   },
+
+  'tempus/puzzle-data/+storeName/+' (data, packet, topic) {
+    if (! topic.startsWith(storeTopicPrefix)) {
+      return;
+    }
+
+    let topicSplits = topic.split(storeTopicPrefix);
+    let key = topicSplits[1];
+    let payload = data.length ? JSON.parse(data) : null;
+    console.log('puzzle-data', key, payload);
+
+    currentData.puzzleData[key] = payload;
+  },
 };
 
 mqttClient.on('connect', function () {
@@ -270,7 +285,7 @@ mqttClient.on('connect', function () {
   mqttClient.publish(presenceTopic, JSON.stringify(presencePayload), {retain: true});
 
   mqttClient.subscribe(
-    Object.keys(mqttTopics).map(topic => MQTTPattern.fill(topic, {roomSlug: roomSlug}))
+    Object.keys(mqttTopics).map(topic => MQTTPattern.fill(topic, {roomSlug: roomSlug, storeName: storeName}))
   );
 });
 
