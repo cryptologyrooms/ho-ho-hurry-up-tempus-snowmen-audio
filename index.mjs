@@ -495,7 +495,7 @@ function audioEnded() {
 
 function playTrack(track, looped) {
 
-  currentData.audioPath = ;
+  currentData.audioPath = currentData.puzzleData['track_mp3'][track];
   currentData.playLooped = looped;
   currentData.playAudio = true;
 
