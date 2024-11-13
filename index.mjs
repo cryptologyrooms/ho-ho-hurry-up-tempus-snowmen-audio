@@ -72,12 +72,12 @@ if (true) { //Gpio.Gpio.accessible) {
   console.log('Gpio: using real ended');
   endedOut = new Gpio(pinEnded, 'out');
   playIn = new Gpio(pinPlay, 'in', 'rising', {debounceTimeout: 10});
-  stopIn = new Gpio(pinPlay, 'in', 'rising', {debounceTimeout: 10});
-  loopIn = new Gpio(pinPlay, 'in');
-  trackBit0In = new Gpio(pinPlay, 'in');
-  trackBit1In = new Gpio(pinPlay, 'in');
-  trackBit2In = new Gpio(pinPlay, 'in');
-  trackBit4In = new Gpio(pinPlay, 'in');
+  stopIn = new Gpio(pinLoop, 'in', 'rising', {debounceTimeout: 10});
+  loopIn = new Gpio(pinStop, 'in');
+  trackBit0In = new Gpio(pinTrackBit0, 'in');
+  trackBit1In = new Gpio(pinTrackBit1, 'in');
+  trackBit2In = new Gpio(pinTrackBit2, 'in');
+  trackBit4In = new Gpio(pinTrackBit3, 'in');
 
   playIn.watch(playWatch);
   stopIn.watch(stopWatch);
