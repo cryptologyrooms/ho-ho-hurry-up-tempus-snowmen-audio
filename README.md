@@ -18,7 +18,22 @@ https://www.raspberrypi.com/documentation/accessories/audio.html
 https://pinout.xyz/pinout/pi_digiamp  
 
 `dtoverlay=iqaudio-digiampplus,unmute_amp`
-`#dtparam=audio=on`
+`dtparam=audio=off`
+`dtoverlay=vc4-kms-v3d,audio=off,audio1=off`
+
+
+Store Name `ho-ho-hurry-up:hurry-up-snowmen-audio`
+
+| Key               | Type   | Default                                          |
+|-------------------|--------|--------------------------------------------------|
+| `track_mp3`       | json   | {                                                |
+|                   |        | "0":"/audio/ho-ho-hurry-up/intro.mp3",           |
+|                   |        | "1":"/audio/ho-ho-hurry-up/track_1.mp3",         |
+|                   |        | "":"",                                           |
+|                   |        | }                                                |
+|                   |        |                                                  |
+
+mosquitto_pub -h tempus.local -t "tempus/puzzle-data/ho-ho-hurry-up:hurry-up-snowmen-audio/track_mp3" -r -m '["/audio/hhhu/snowmen/intro.mp3","/audio/hhhu/snowmen/track_1.mp3","/audio/hhhu/snowmen/track_2.mp3","/audio/hhhu/snowmen/track_3.mp3","/audio/hhhu/snowmen/track_4.mp3","/audio/hhhu/snowmen/track_5.mp3","/audio/hhhu/snowmen/track_6.mp3","/audio/hhhu/snowmen/track_7.mp3","/audio/hhhu/snowmen/track_8.mp3","/audio/hhhu/snowmen/track_9.mp3","/audio/hhhu/snowmen/track_10.mp3","/audio/hhhu/snowmen/track_11.mp3","/audio/hhhu/snowmen/track_12.mp3",["/audio/hhhu/snowmen/correct_0.mp3","/audio/hhhu/snowmen/correct_1.mp3"],["/audio/hhhu/snowmen/incorrect_0.mp3","/audio/hhhu/snowmen/incorrect_1.mp3"],"/audio/hhhu/snowmen/solved.mp3"]'
 
 
 ## used pins

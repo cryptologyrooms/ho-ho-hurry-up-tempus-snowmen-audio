@@ -51,6 +51,9 @@ const pinTrackBit1 = parseInt(process.env.PIN_TRACK_BIT_1);
 const pinTrackBit2 = parseInt(process.env.PIN_TRACK_BIT_2);
 const pinTrackBit3 = parseInt(process.env.PIN_TRACK_BIT_3);
 
+const TRACK_CORRECT = 13;
+const TRACK_INCORRECT = 14;
+
 console.log('Room Slug: ' + roomSlug);
 console.log('Room Screen Name: ' + roomScreenName);
 console.log('Store Name: ' + storeName);
@@ -65,7 +68,7 @@ let loopIn;
 let trackBit0In;
 let trackBit1In;
 let trackBit2In;
-let trackBit4In;
+let trackBit3In;
 let endedTimeout = null;
 
 if (true) { //Gpio.Gpio.accessible) {
@@ -77,7 +80,7 @@ if (true) { //Gpio.Gpio.accessible) {
   trackBit0In = new Gpio(pinTrackBit0, 'in');
   trackBit1In = new Gpio(pinTrackBit1, 'in');
   trackBit2In = new Gpio(pinTrackBit2, 'in');
-  trackBit4In = new Gpio(pinTrackBit3, 'in');
+  trackBit3In = new Gpio(pinTrackBit3, 'in');
 
   playIn.watch(playWatch);
   stopIn.watch(stopWatch);
@@ -95,6 +98,9 @@ if (true) { //Gpio.Gpio.accessible) {
 
 
 process.on('SIGINT', _ => {
+  playIn.unwatchAll();
+  stopIn.unwatchAll();
+
   endedOut.unexport();
   playIn.unexport();
   stopIn.unexport();
@@ -102,7 +108,20 @@ process.on('SIGINT', _ => {
   trackBit0In.unexport();
   trackBit1In.unexport();
   trackBit2In.unexport();
-  trackBit4In.unexport();
+  trackBit3In.unexport();
+
+  endedOut = undefined;
+  playIn = undefined;
+  stopIn = undefined;
+  loopIn = undefined;
+  trackBit0In = undefined;
+  trackBit1In = undefined;
+  trackBit2In = undefined;
+  trackBit3In = undefined;
+
+  mqttClient.end(true);
+
+  process.exit();
 });
 
 let defaultData = {
@@ -124,6 +143,8 @@ let defaultData = {
   playAudio: false,
   playLooped: false,
   puzzleData: [],
+  correctTrack: 0,
+  incorrectTrack: 0,
 };
 
 let currentData = JSON.parse(JSON.stringify(defaultData));
@@ -266,7 +287,7 @@ const mqttTopics = {
     console.log('music', payload);
   },
 
-  'tempus/puzzle-data/+storeName/+' (data, packet, topic) {
+  'tempus/puzzle-data/+storeName/#key' (data, packet, topic) {
     if (! topic.startsWith(storeTopicPrefix)) {
       return;
     }
@@ -287,7 +308,7 @@ mqttClient.on('connect', function () {
   mqttClient.publish(presenceTopic, JSON.stringify(presencePayload), {retain: true});
 
   mqttClient.subscribe(
-    Object.keys(mqttTopics).map(topic => MQTTPattern.fill(topic, {roomSlug: roomSlug, storeName: storeName}))
+    Object.keys(mqttTopics).map(topic => MQTTPattern.fill(topic, {roomSlug: roomSlug, storeName: storeName, key: '#'}))
   );
 });
 
@@ -483,21 +504,45 @@ function stopWatch(err, value) {
   stopAudio();
 }
 
-// pulse 500ms pinEnded when audio stops
+// pulse pinEnded when audio stops
 function audioEnded() {
+  console.log('audioEnded()');
   currentData.playAudio = false;
 
   endedOut.write(0);
 
   clearTimeout(endedTimeout);
   endedTimeout = setTimeout(() => {
+    console.log('audioEnded(): reset');
     endedOut.write(1);
-  }, 500);
+  }, 5000);
 }
 
 function playTrack(track, looped) {
+  if (! currentData.puzzleData.hasOwnProperty('track_mp3')) {
+    console.log('playTrack: puzzleData not yet loaded');
 
-  currentData.audioPath = currentData.puzzleData['track_mp3'][track];
+    return;
+  }
+
+
+  if (track == TRACK_CORRECT) {
+    currentData.audioPath = route('index') + currentData.puzzleData['track_mp3'][track][currentData.correctTrack];
+
+    currentData.correctTrack++;
+    if (currentData.correctTrack == currentData.puzzleData['track_mp3'][TRACK_CORRECT].length) {
+      currentData.correctTrack = 0;
+    }
+  } else if (track == TRACK_INCORRECT) {
+    currentData.audioPath = route('index') + currentData.puzzleData['track_mp3'][track][currentData.incorrectTrack];
+
+    currentData.incorrectTrack++;
+    if (currentData.incorrectTrack == currentData.puzzleData['track_mp3'][TRACK_INCORRECT].length) {
+      currentData.incorrectTrack = 0;
+    }
+  } else {
+    currentData.audioPath = route('index') + currentData.puzzleData['track_mp3'][track];
+  }
   currentData.playLooped = looped;
   currentData.playAudio = true;
 
@@ -518,7 +563,7 @@ function playAudioLoop() {
   }
 
   let volume =  defaultVolume;
-  log('Playing (' + (looped ? 'looped' : 'once') + ') : ' + currentData.audioPath + ' at volume: ' + volume);
+  log('Playing (' + (currentData.playLooped ? 'looped' : 'once') + ') : ' + currentData.audioPath + ' at volume: ' + volume);
   currentData.playingPath = currentData.audioPath;
 
   audio = player.play(
@@ -533,9 +578,10 @@ function playAudioLoop() {
         log("Play Stopped");
       } else {
         if (currentData.playAudio == false) {
+          console.log("currentData.playAudio == false")
+
           return;
         }
-
         if (currentData.playLooped) {
           playAudioLoop();
         } else {
