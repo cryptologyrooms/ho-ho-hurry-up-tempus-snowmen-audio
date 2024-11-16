@@ -69,8 +69,8 @@ Store Name `ho-ho-hurry-up:hurry-up-snowmen`
 | Key               | Type   | Default                                          |
 |-------------------|--------|--------------------------------------------------|
 | `events`          | json   | {"startIntro":"SNOWMAN_START_INTRO",             | <
-|                   |        | "overrideRestart":"SNOWMAN_OVERIDE_RESTART",     | <
-|                   |        | "overrideCorrect":"SNOWMAN_OVERIDE_CORRECT",     | <
+|                   |        | "overrideRestart":"SNOWMAN_OVERRIDE_RESTART",     | <
+|                   |        | "overrideCorrect":"SNOWMAN_OVERRIDE_CORRECT",     | <
 |                   |        | "correct":"SNOWMAN_CORRECT",                     | >
 |                   |        | "incorrect":"SNOWMAN_INCORRECT",                 | >
 |                   |        | "solved":"SNOWMAN_SOLVED",                       | >

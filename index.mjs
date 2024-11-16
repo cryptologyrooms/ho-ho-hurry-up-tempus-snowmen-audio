@@ -63,8 +63,8 @@ import { Gpio } from '@bratbit/onoff';
 
 let endedOut;
 let playIn;
-let stopIn;
 let loopIn;
+let stopIn;
 let trackBit0In;
 let trackBit1In;
 let trackBit2In;
@@ -75,8 +75,8 @@ if (true) { //Gpio.Gpio.accessible) {
   console.log('Gpio: using real ended');
   endedOut = new Gpio(pinEnded, 'out');
   playIn = new Gpio(pinPlay, 'in', 'rising', {debounceTimeout: 10});
-  stopIn = new Gpio(pinLoop, 'in', 'rising', {debounceTimeout: 10});
-  loopIn = new Gpio(pinStop, 'in');
+  loopIn = new Gpio(pinLoop, 'in');
+  stopIn = new Gpio(pinStop, 'in', 'rising', {debounceTimeout: 10});
   trackBit0In = new Gpio(pinTrackBit0, 'in');
   trackBit1In = new Gpio(pinTrackBit1, 'in');
   trackBit2In = new Gpio(pinTrackBit2, 'in');
@@ -96,6 +96,7 @@ if (true) { //Gpio.Gpio.accessible) {
   };
 }
 
+endedOut.write(1);
 
 process.on('SIGINT', _ => {
   playIn.unwatchAll();
@@ -254,6 +255,32 @@ const mqttTopics = {
     let payload = data.length ? JSON.parse(data) : null;
     console.log('game-state', payload);
     currentData.gameState = payload;
+
+    if (currentData.gameState == null) {
+      stopAudio();
+    } else {
+      switch (currentData.gameState.state) {
+        case 'R':
+          stopAudio();
+          break;
+        case 'SS':
+          stopAudio();
+          break;
+        case 'S':
+
+          break;
+        case 'E':
+          stopAudio();
+
+          break;
+        case 'F':
+          stopAudio();
+
+          break;
+        default:
+          break;
+      }
+    }
   },
 
   'tempus/room/+roomSlug/clue' (data, packet, topic) {
@@ -287,7 +314,7 @@ const mqttTopics = {
     console.log('music', payload);
   },
 
-  'tempus/puzzle-data/+storeName/#key' (data, packet, topic) {
+  'tempus/puzzle-data/+storeName/+key' (data, packet, topic) {
     if (! topic.startsWith(storeTopicPrefix)) {
       return;
     }
@@ -308,7 +335,7 @@ mqttClient.on('connect', function () {
   mqttClient.publish(presenceTopic, JSON.stringify(presencePayload), {retain: true});
 
   mqttClient.subscribe(
-    Object.keys(mqttTopics).map(topic => MQTTPattern.fill(topic, {roomSlug: roomSlug, storeName: storeName, key: '#'}))
+    Object.keys(mqttTopics).map(topic => MQTTPattern.fill(topic, {roomSlug: roomSlug, storeName: storeName, key: '+'}))
   );
 });
 
@@ -515,7 +542,7 @@ function audioEnded() {
   endedTimeout = setTimeout(() => {
     console.log('audioEnded(): reset');
     endedOut.write(1);
-  }, 5000);
+  }, 500);
 }
 
 function playTrack(track, looped) {
@@ -562,10 +589,12 @@ function playAudioLoop() {
     //
   }
 
+
   let volume =  defaultVolume;
   log('Playing (' + (currentData.playLooped ? 'looped' : 'once') + ') : ' + currentData.audioPath + ' at volume: ' + volume);
   currentData.playingPath = currentData.audioPath;
 
+  endedOut.write(1);
   audio = player.play(
     currentData.playingPath,
     { mpg123: ['-g', volume] },
