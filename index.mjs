@@ -332,6 +332,7 @@ mqttClient.on('connect', function () {
   console.log('MQTT: Connect');
   presencePayload.state = 'ONLINE';
   presencePayload.ip = localIp;
+  presencePayload.timestamp = moment();
   mqttClient.publish(presenceTopic, JSON.stringify(presencePayload), {retain: true});
 
   mqttClient.subscribe(
